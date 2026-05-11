@@ -1,0 +1,342 @@
+<!-- 
+  ============================================================================
+  LifeOS – Free & Open Source Personal Resilience System
+  ----------------------------------------------------------------------------
+  Version: 0.0.1
+  License: MIT (https://opensource.org/licenses/MIT)
+  Repository: https://github.com/michaelsboost/lifeos
+  
+  Built with:
+    - Tailwind CSS (utility-first styling)
+    - Alpine.js (lightweight reactive frontend)
+    - LocalStorage (single object persistence, offline-first)
+  
+  == HOW TO CONTRIBUTE ======================================================
+  1. All data is stored in a single localStorage key: 'lifeOS_state'
+  2. The Alpine component 'lifeOSApp()' contains all state and methods.
+  3. Add new features by extending the state, adding computed properties, 
+     and creating UI sections with Alpine directives (x-data, x-model, etc.).
+  4. Use the existing patterns for CRUD operations (add/remove prompts).
+  5. Ensure any new data property is included in saveToLocalStorage() and 
+     the importFullJSON() validation array.
+  6. Keep the design mobile-first, dark, and card-based.
+  7. No external tracking, no accounts, no backend — preserve privacy.
+  
+  == FEATURES ================================================================
+  - Dashboard: money left, bills, expiring food, emergency fund, habits, prep score
+  - Budget: income/expenses, savings goals, debt payoff (with edit buttons)
+  - Pantry: food inventory, expiration alerts, emergency food days
+  - Prep: emergency checklist with dynamic score
+  - Habits: daily stability routines (persisted checkboxes)
+  - Inventory: home/survival gear with status
+  - Notes: free text with .txt import/export
+  - Full data backup/restore via JSON (entire state)
+  - Budget CSV import/export
+  - Share app (Web Share API / clipboard fallback)
+  ============================================================================
+-->
+
+<!-- 
+  Main Alpine component: lifeOSApp()
+  Contains all state, computed properties, and actions.
+-->
+<div x-data="lifeOSApp()" x-init="initializeApp()" class="bg-gradient-to-br from-slate-950 via-gray-900 to-slate-900 text-gray-200 font-sans antialiased container mx-auto px-4 py-6 md:py-8">
+  
+  <!-- HEADER + ACTION BUTTONS -->
+  <div class="mb-6 border-b border-gray-700/60 pb-4">
+    <div class="flex flex-col md:flex-row md:justify-between md:items-end gap-3">
+      <div>
+        <div class="flex">
+          <a href="https://github.com/michaelsboost/lifeos" target="_blank">
+            <svg class="w-8 mr-3" viewBox="0 0 194.42276 252.66635" xmlns="http://www.w3.org/2000/svg">
+              <g  transform="translate(-50.979085,-106.51025)">
+                <path fill="currentColor" d="m 148.62842,106.51026 a 4.8267046,4.8267046 0 0 0 -3.07009,1.09348 l -89.897877,73.68129 a 12.787935,12.787935 0 0 0 -4.681368,9.89035 v 52.79006 a 3.5543832,3.5543832 0 0 0 3.554305,3.5543 h 14.615646 l 0.07596,-50.8527 a 3.4511718,3.4511718 0 0 1 1.246436,-2.64997 l 78.348188,-65.06166 78.3544,64.87201 a 4.274462,4.274462 0 0 1 1.54822,3.34191 l -0.58239,50.35041 h 14.97118 a 2.2911756,2.2911756 0 0 0 2.29081,-2.29081 v -57.92411 a 4.6378625,4.6378625 0 0 0 -1.68206,-3.57395 l -92.02591,-76.11318 a 4.8267046,4.8267046 0 0 0 -3.06545,-1.10743 z m -17.78496,66.71583 v 14.86007 h 14.49059 v -14.86007 z m 21.04368,0 v 14.86007 h 14.49059 v -14.86007 z m -21.04368,21.50566 v 14.85956 h 14.49059 v -14.85956 z m 21.04368,0 v 14.85956 h 14.49059 v -14.85956 z m -99.818715,66.01199 c 3.783304,55.41156 56.339945,70.70331 94.478985,97.8545 1.08416,0.77181 2.8218,0.77084 3.90571,-10e-4 37.69066,-26.8406 89.43643,-40.57913 94.48002,-97.85346 H 229.4917 c -1.10988,0 -2.0284,0.90028 -2.11563,2.0066 -2.31853,29.40719 -37.81322,54.26118 -78.87529,77.3684 -45.17135,-24.6703 -76.830326,-50.05187 -79.29335,-76.96997 -0.121245,-1.32507 -1.220427,-2.40503 -2.551265,-2.40503 z" />
+                <path fill="#34d399" d="m 84.498486,225.83476 v 17.9896 9.52397 c 0.01411,8.3739 2.437357,17.7212 6.458521,25.04395 8.483242,15.44268 26.525443,22.27501 40.454893,31.70711 3.28748,2.22575 7.50627,6.25086 10.16941,9.21029 1.3545,1.50265 2.39484,3.28014 3.93981,4.58525 v -26.45472 c 0,-9.02646 0.3002,-15.73207 -1.92908,-24.69151 -1.89065,-7.59788 -5.65112,-14.95598 -10.38128,-21.16409 -2.90653,-3.81305 -6.52904,-7.04393 -10.26449,-10.01747 -5.20988,-4.14462 -11.18141,-7.18891 -17.2837,-9.78855 -5.41093,-2.30335 -15.379252,-5.47469 -21.164084,-5.94383 z m 127.740004,0 c -5.78483,0.46914 -15.75315,3.64048 -21.16408,5.94383 -6.10229,2.59964 -12.07382,5.64393 -17.2837,9.78855 -3.73545,2.97354 -7.35796,6.20442 -10.26449,10.01747 -4.73016,6.20811 -8.49063,13.56621 -10.38128,21.16409 -2.22928,8.95944 -1.92908,15.66505 -1.92908,24.69151 v 26.45472 c 1.54497,-1.30511 2.58531,-3.0826 3.93981,-4.58525 2.66314,-2.95943 6.88193,-6.98454 10.16941,-9.21029 13.92945,-9.4321 31.97165,-16.26443 40.45489,-31.70711 4.02116,-7.32275 6.44441,-16.67005 6.45852,-25.04395 v -9.52397 z">
+                  <title id="title9">Selection</title>
+                </path>
+              </g>
+            </svg>
+          </a>
+          <h1 class="text-3xl md:text-4xl font-bold tracking-tight bg-gradient-to-r from-cyan-400 to-emerald-400 bg-clip-text text-transparent">LifeOS</h1>
+        </div>
+        <p class="text-gray-400 text-sm md:text-base mt-1">organize your life, prepare for emergencies, and build stability from one simple dashboard.</p>
+      </div>
+      <div class="flex flex-wrap gap-2 items-center">
+        <!-- Share: uses native Web Share API if available -->
+        <button @click="shareApp" class="bg-gray-800 hover:bg-gray-700 text-sm px-3 py-1.5 rounded-full flex items-center gap-1 transition">📤 Share</button>
+        <!-- Donate modal trigger -->
+        <a href="https://michaelsboost.com/donate/" target="_blank" class="bg-rose-900/60 hover:bg-rose-800/70 text-sm px-3 py-1.5 rounded-full flex items-center gap-1 transition">❤️ Donate</a>
+        <!-- Data tools dropdown: JSON backup, CSV budget, TXT notes -->
+        <div class="relative" x-data="{ open: false }">
+          <button @click="open = !open" class="bg-gray-800 hover:bg-gray-700 text-sm px-3 py-1.5 rounded-full flex items-center gap-1">📂 Data tools ▼</button>
+          <div x-show="open" @click.away="open = false" x-transition class="absolute right-0 mt-2 w-56 bg-gray-800 border border-gray-700 rounded-xl shadow-xl z-20 text-sm">
+            <div class="p-2 space-y-1">
+              <!-- Full JSON export/import (entire state) -->
+              <button @click="exportFullJSON" class="w-full text-left px-3 py-1.5 hover:bg-gray-700 rounded">💾 Export all data (.json)</button>
+              <label class="w-full text-left px-3 py-1.5 hover:bg-gray-700 rounded cursor-pointer">📂 Import all data (.json)<input type="file" accept=".json" @change="importFullJSON" class="hidden"></label>
+              <div class="border-t border-gray-700 my-1"></div>
+              <button @click="exportNotesTxt" class="w-full text-left px-3 py-1.5 hover:bg-gray-700 rounded">📄 Export Notes (.txt)</button>
+              <label class="w-full text-left px-3 py-1.5 hover:bg-gray-700 rounded cursor-pointer">📂 Import Notes (.txt)<input type="file" accept=".txt" @change="importNotesFromFile" class="hidden"></label>
+              <button @click="exportBudgetCSV" class="w-full text-left px-3 py-1.5 hover:bg-gray-700 rounded">📊 Export Budget (.csv)</button>
+              <label class="w-full text-left px-3 py-1.5 hover:bg-gray-700 rounded cursor-pointer">📂 Import Budget (.csv)<input type="file" accept=".csv" @change="importBudgetFromCSV" class="hidden"></label>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="text-xs text-gray-500 mt-2 flex items-center gap-3">
+      <span class="inline-block w-2 h-2 rounded-full bg-emerald-500"></span>
+      <span>local & private · offline first · open source (MIT)</span>
+    </div>
+  </div>
+
+  <!-- DASHBOARD: 6 key life signals (computed from state) -->
+  <div class="mb-10">
+    <h2 class="text-xl font-semibold border-l-4 border-cyan-500 pl-3 mb-4">📡 Dashboard · vital signals</h2>
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+      <!-- Money left this week -->
+      <div class="bg-gray-800/60 backdrop-blur-sm border border-gray-700 rounded-2xl p-4 shadow-lg card-hover">
+        <div class="flex items-center gap-2 text-cyan-300 text-sm uppercase">💰 Money left (weekly)</div>
+        <div class="text-3xl font-bold mt-1" x-text="formatMoney(weeklyNet)"></div>
+        <div class="text-xs text-gray-400 mt-1">after essentials & bills</div>
+      </div>
+      <!-- Bills coming up -->
+      <div class="bg-gray-800/60 border border-gray-700 rounded-2xl p-4 shadow-lg card-hover">
+        <div class="flex items-center gap-2 text-amber-300 text-sm uppercase">📅 Bills coming up</div>
+        <div class="mt-1">
+          <template x-if="upcomingBills.length">
+            <ul class="text-sm space-y-1">
+              <template x-for="bill in upcomingBills.slice(0,2)" :key="bill.id">
+                <li class="flex justify-between">
+                  <span x-text="bill.desc"></span>
+                  <span x-text="formatMoney(bill.amount)"></span>
+                  <span class="text-gray-400 text-xs" x-text="bill.dueDate"></span>
+                </li>
+              </template>
+            </ul>
+          </template>
+          <p x-if="upcomingBills.length === 0" class="text-gray-400 text-sm">✔ no bills due soon</p>
+        </div>
+      </div>
+      <!-- Food expiring soon -->
+      <div class="bg-gray-800/60 border border-gray-700 rounded-2xl p-4 shadow-lg card-hover">
+        <div class="flex items-center gap-2 text-red-300 text-sm uppercase">🍅 Expiring soon</div>
+        <div>
+          <template x-if="expiringItems.length">
+            <ul class="text-sm space-y-1">
+              <template x-for="item in expiringItems.slice(0,2)" :key="item.id">
+                <li class="flex justify-between">
+                  <span x-text="item.name"></span>
+                  <span class="text-xs text-amber-400" x-text="item.expiry"></span>
+                </li>
+              </template>
+            </ul>
+          </template>
+          <p x-if="expiringItems.length === 0" class="text-gray-400 text-sm">✓ pantry fresh</p>
+        </div>
+      </div>
+      <!-- Emergency fund progress -->
+      <div class="bg-gray-800/60 border border-gray-700 rounded-2xl p-4 shadow-lg card-hover">
+        <div class="flex items-center gap-2 text-emerald-300 text-sm uppercase">🛡️ Emergency fund</div>
+        <div class="mt-1">
+          <div class="flex justify-between text-sm">
+            <span x-text="formatMoney(emergency.current)"></span>
+            <span x-text="formatMoney(emergency.target)"></span>
+          </div>
+          <div class="w-full bg-gray-700 rounded-full h-2 mt-1">
+            <div class="bg-emerald-500 h-2 rounded-full" :style="`width: ${emergencyPercent}%`"></div>
+          </div>
+          <span class="text-xs text-gray-400" x-text="Math.round(emergencyPercent)+'%'"></span>
+        </div>
+      </div>
+      <!-- Habits checked off today -->
+      <div class="bg-gray-800/60 border border-gray-700 rounded-2xl p-4 shadow-lg card-hover">
+        <div class="flex items-center gap-2 text-indigo-300 text-sm uppercase">✅ Habits today</div>
+        <div class="text-2xl font-bold" x-text="completedHabitsCount + '/' + habitsList.length"></div>
+        <div class="text-xs text-gray-400">stability routines</div>
+      </div>
+      <!-- Preparedness score -->
+      <div class="bg-gray-800/60 border border-gray-700 rounded-2xl p-4 shadow-lg card-hover">
+        <div class="flex items-center gap-2 text-orange-300 text-sm uppercase">⚡ Preparedness score</div>
+        <div class="text-2xl font-bold" x-text="prepScore + '%'"></div>
+        <div class="w-full bg-gray-700 rounded-full h-2 mt-1">
+          <div class="bg-orange-500 h-2 rounded-full" :style="`width: ${prepScore}%`"></div>
+        </div>
+        <div class="text-xs text-gray-400 mt-1">emergency readiness</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MAIN GRID: BUDGET / PANTRY / PREP / HABITS / INVENTORY / NOTES -->
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+    
+    <!-- BUDGET Section: income, expenses, savings, debt, survival number -->
+    <div class="bg-gray-800/40 rounded-2xl border border-gray-700 p-5 shadow-md">
+      <div class="flex justify-between items-center flex-wrap mb-3">
+        <h3 class="text-lg font-bold flex items-center gap-2">💰 Budget · cash flow</h3>
+        <span class="text-xs bg-gray-700 px-2 py-1 rounded-full">survival number: <span x-text="formatMoney(survivalNumberWeekly)"></span>/week</span>
+      </div>
+      
+      <!-- Income list -->
+      <div class="mb-4">
+        <h4 class="text-sm font-semibold text-cyan-300">Income</h4>
+        <div class="space-y-2 mt-1">
+          <template x-for="inc in incomes" :key="inc.id">
+            <div class="flex justify-between items-center bg-gray-900/60 p-2 rounded text-sm">
+              <span x-text="inc.desc"></span>
+              <span x-text="formatMoney(inc.amount)"></span>
+              <button @click="removeIncome(inc.id)" class="text-red-400 hover:text-red-300 text-xs">✖</button>
+            </div>
+          </template>
+        </div>
+        <button @click="addIncomePrompt()" class="text-xs mt-2 bg-gray-700 hover:bg-gray-600 px-3 py-1 rounded-full">+ Add income</button>
+      </div>
+      
+      <!-- Expenses list -->
+      <div>
+        <h4 class="text-sm font-semibold text-amber-300">Expenses & bills</h4>
+        <div class="space-y-2 mt-1">
+          <template x-for="exp in expenses" :key="exp.id">
+            <div class="bg-gray-900/60 p-2 rounded text-sm">
+              <div class="flex justify-between">
+                <span x-text="exp.desc"></span>
+                <span x-text="formatMoney(exp.amount)"></span>
+                <button @click="removeExpense(exp.id)" class="text-red-400 text-xs">✖</button>
+              </div>
+              <div class="flex text-xs text-gray-400 gap-3 mt-1">
+                <span x-if="exp.isBill">📌 Bill</span>
+                <span x-if="exp.dueDate" x-text="'due: '+exp.dueDate"></span>
+              </div>
+            </div>
+          </template>
+        </div>
+        <button @click="addExpensePrompt()" class="text-xs mt-2 bg-gray-700 hover:bg-gray-600 px-3 py-1 rounded-full">+ Add expense / bill</button>
+      </div>
+      
+      <!-- Debt section with edit controls -->
+      <div class="mt-4 border-t border-gray-700 pt-3">
+        <div class="flex justify-between items-center flex-wrap gap-2">
+          <div class="text-sm font-semibold text-rose-300 flex items-center gap-1">🎯 Debt payoff</div>
+          <div class="flex gap-1">
+            <button @click="setDebtTotal()" class="text-xs bg-gray-700 hover:bg-gray-600 px-2 py-1 rounded">✏️ Total debt</button>
+            <button @click="setDebtPaid()" class="text-xs bg-gray-700 hover:bg-gray-600 px-2 py-1 rounded">✏️ Paid</button>
+          </div>
+        </div>
+        <div class="flex justify-between text-sm mt-1">
+          <span x-text="formatMoney(debtPaid) + ' paid'"></span>
+          <span x-text="'of ' + formatMoney(debtTotal)"></span>
+        </div>
+        <div class="w-full bg-gray-700 rounded-full h-2 mt-1">
+          <div class="bg-rose-500 h-2 rounded-full" :style="`width: ${debtProgress}%`"></div>
+        </div>
+        <div class="text-xs text-gray-400 mt-1 flex justify-between">
+          <span>Remaining: <span x-text="formatMoney(debtTotal - debtPaid)"></span></span>
+          <span x-text="Math.round(debtProgress)+'%'"></span>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-2 gap-2 mt-3 text-xs">
+        <div>📈 Monthly net: <span x-text="formatMoney(monthlyNetIncome)"></span></div>
+        <div>🎯 Savings: <span x-text="formatMoney(savingsGoal.current)+'/'+formatMoney(savingsGoal.target)"></span></div>
+      </div>
+      <div class="mt-2 flex gap-2 flex-wrap">
+        <button @click="updateSavingsGoal()" class="text-xs bg-gray-700 px-2 py-1 rounded">✏️ Set savings goal</button>
+        <button @click="updateEmergencyFund()" class="text-xs bg-gray-700 px-2 py-1 rounded">✏️ Emergency fund</button>
+      </div>
+    </div>
+
+    <!-- PANTRY: food inventory with expiration and calorie tracking -->
+    <div class="bg-gray-800/40 rounded-2xl border border-gray-700 p-5 shadow-md">
+      <div class="flex justify-between items-center">
+        <h3 class="text-lg font-bold">🥫 Pantry · food inventory</h3>
+        <div class="text-sm bg-gray-800 px-2 py-1 rounded-full">🍽️ Emergency days: <span x-text="emergencyFoodDays"></span> days</div>
+      </div>
+      <div class="max-h-56 overflow-y-auto mt-2 space-y-2">
+        <template x-for="item in pantryItems" :key="item.id">
+          <div class="bg-gray-900/70 p-2 rounded flex justify-between items-start text-sm">
+            <div>
+              <span class="font-medium" x-text="item.name"></span>
+              <div class="text-xs text-gray-400">
+                <span x-text="item.qty+' units'"></span> · exp: <span x-text="item.expiry"></span> · <span x-text="item.calsPerUnit+' cal/unit'"></span>
+              </div>
+            </div>
+            <button @click="removePantryItem(item.id)" class="text-red-400 text-xs">✖</button>
+          </div>
+        </template>
+        <p x-if="pantryItems.length === 0" class="text-gray-500 text-sm">➕ add food items to track expiration</p>
+      </div>
+      <button @click="addPantryItemPrompt()" class="text-xs mt-3 bg-gray-700 px-3 py-1.5 rounded-full">+ Add canned / dry goods</button>
+      <div x-show="lowStockAlerts.length > 0" class="mt-3 text-xs bg-red-950/50 p-2 rounded border border-red-800">
+        <span class="font-semibold">⚠️ Low stock alert:</span> <span x-text="lowStockAlerts.join(', ')"></span>
+      </div>
+    </div>
+
+    <!-- PREP: emergency readiness checklist -->
+    <div class="bg-gray-800/40 rounded-2xl border border-gray-700 p-5 shadow-md">
+      <h3 class="text-lg font-bold mb-2">🪖 Emergency prep · readiness</h3>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-2 max-h-64 overflow-y-auto">
+        <template x-for="task in prepTasks" :key="task.id">
+          <label class="flex items-start gap-2 text-sm p-1">
+            <input type="checkbox" x-model="task.completed" @change="saveToLocalStorage" class="mt-0.5 rounded bg-gray-700">
+            <span x-text="task.name" :class="{'line-through text-gray-500':task.completed}"></span>
+          </label>
+        </template>
+      </div>
+      <button @click="addPrepTask()" class="text-xs mt-3 bg-gray-700 px-3 py-1 rounded-full">+ Add readiness task</button>
+      <div class="mt-3 text-xs text-gray-400 border-t border-gray-700 pt-2">🏠 Go-bag · water · power outage · family contact plan</div>
+    </div>
+
+    <!-- HABITS: daily stability routines -->
+    <div class="bg-gray-800/40 rounded-2xl border border-gray-700 p-5 shadow-md">
+      <h3 class="text-lg font-bold mb-2">🌱 Daily stability habits</h3>
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+        <template x-for="habit in habitsList" :key="habit.id">
+          <label class="flex items-center gap-2 text-sm">
+            <input type="checkbox" x-model="habit.completed" @change="saveToLocalStorage" class="rounded bg-gray-700">
+            <span x-text="habit.name" :class="{'line-through opacity-70':habit.completed}"></span>
+          </label>
+        </template>
+      </div>
+      <button @click="resetHabitsToday()" class="text-xs bg-gray-700 px-3 py-1 mt-3 rounded-full">⟳ Reset all habits</button>
+    </div>
+
+    <!-- INVENTORY: home gear, documents, survival supplies -->
+    <div class="bg-gray-800/40 rounded-2xl border border-gray-700 p-5 shadow-md">
+      <h3 class="text-lg font-bold mb-2">🧰 Home inventory · survival gear</h3>
+      <div class="max-h-56 overflow-y-auto space-y-2">
+        <template x-for="item in inventoryItems" :key="item.id">
+          <div class="bg-gray-900/60 p-2 rounded text-sm flex justify-between items-start">
+            <div>
+              <span class="font-medium" x-text="item.name"></span>
+              <div class="text-xs text-gray-400">
+                <span x-text="item.category"></span> · status: <span :class="{'text-yellow-300': item.status !== 'good'}" x-text="item.status"></span>
+              </div>
+            </div>
+            <button @click="removeInventoryItem(item.id)" class="text-red-400 text-xs">✖</button>
+          </div>
+        </template>
+      </div>
+      <button @click="addInventoryPrompt()" class="text-xs mt-3 bg-gray-700 px-3 py-1.5 rounded-full">+ Add item (tool/doc/supply)</button>
+      <div class="text-xs text-gray-400 mt-2">🏷️ repair · sell · donate · replace</div>
+    </div>
+
+    <!-- NOTES & PLANS: free text, local import/export -->
+    <div class="bg-gray-800/40 rounded-2xl border border-gray-700 p-5 shadow-md">
+      <div class="flex justify-between items-center mb-2 flex-wrap gap-2">
+        <h3 class="text-lg font-bold">📓 Notes & emergency plans</h3>
+        <div class="flex gap-1">
+          <button @click="exportNotesTxt" class="text-xs bg-gray-700 px-2 py-1 rounded">⬇️ Export .txt</button>
+          <label class="text-xs bg-gray-700 px-2 py-1 rounded cursor-pointer">⬆️ Import .txt<input type="file" accept=".txt" @change="importNotesFromFile" class="hidden"></label>
+        </div>
+      </div>
+      <textarea x-model="notesText" @input="saveToLocalStorage" rows="4" class="w-full bg-gray-900 border border-gray-600 rounded-lg p-3 text-sm text-gray-200 placeholder-gray-500 focus:ring-1 focus:ring-cyan-500 resize-y" placeholder="Family contact plan, evacuation routes, goals, ideas, local shelter info..."></textarea>
+      <p class="text-xs text-gray-500 mt-2">🔒 saved locally, never leaves your device</p>
+    </div>
+  </div>
+  
+  <!-- FOOTER with donation link -->
+  <footer class="text-center text-gray-500 text-xs mt-10 pt-4 border-t border-gray-800/50 flex justify-between items-center flex-wrap gap-2">
+    <span>LifeOS — resilience toolkit. All data stored in your browser. MIT open source.</span>
+    <a href="https://michaelsboost.com/donate/" target="_blank" class="text-rose-400 hover:text-rose-300 hover:underline text-xs">❤️ Support LifeOS</a>
+  </footer>
+</div>

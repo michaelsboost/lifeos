@@ -1,0 +1,35 @@
+/* custom scrollbar & smooth background – enhances dark theme */
+body {
+  background: #0b1120;
+}
+
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: #1e293b;
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #3b4a5f;
+  border-radius: 10px;
+}
+
+.card-hover {
+  transition: all 0.2s ease;
+}
+
+.card-hover:hover {
+  transform: translateY(-2px);
+  border-color: #334155;
+}
+
+[x-cloak] {
+  display: none !important;
+}
+  @tailwind base;
+@tailwind components;
+@tailwind utilities;
