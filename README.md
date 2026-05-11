@@ -2,7 +2,7 @@
 
 _LifeOS is your personal resilience & life management dashboard!_
 
-![LifeOS Dashboard](https://raw.githubusercontent.com/michaelsboost/lifeos/main/screenshot.jpeg)
+![LifeOS Dashboard](https://raw.githubusercontent.com/michaelsboost/lifeos/main/imgs/screenshot.jpeg)
 
 [![MIT License](https://img.shields.io/github/license/michaelsboost/lifeos)](LICENSE) [![GitHub Stars](https://img.shields.io/github/stars/michaelsboost/lifeos)](https://github.com/michaelsboost/lifeos/stargazers) [![GitHub Issues](https://img.shields.io/github/issues/michaelsboost/lifeos)](https://github.com/michaelsboost/lifeos/issues)
 
